@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run services:up && npm run services:wait:database && npm run migrations:up && next dev",
+    "test": "npm run services:up && npm run services:wait:database && concurrently -n next,jest -k -s command-jest --hide next \"next dev\" \"jest --runInBand --verbose\"",
     "build": "next build",
     "start": "next start",
     "services:up": "docker compose -f infra/compose.yml up -d",
@@ -28,15 +29,20 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.4",
     "eslint": "8.57.0",
     "eslint-config-next": "14.2.4",
+    "jest": "^30.4.2",
     "node-pg-migrate": "^9.0.0",
     "pg": "^8.22.0",
     "prettier": "^3.9.6",
     "tailwindcss": "^4",
+    "ts-jest": "^29.4.12",
     "typescript": "^5"
   }
 }
