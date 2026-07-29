@@ -1,5 +1,5 @@
 exports.up = (pgm) => {
-  pgm.createTable("users", {
+  pgm.createTable("sales", {
     id: {
       type: "uuid",
       notNull: true,
@@ -14,7 +14,7 @@ exports.up = (pgm) => {
 
     // For reference GitHub limits username to 39 characters.
     date: {
-      type: "timestampz",
+      type: "timestamptz",
       notNull: true,
     },
 
