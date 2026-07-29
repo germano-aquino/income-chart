@@ -3,15 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run services:up && npm run services:wait:database && npm run migrations:up && next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "services:up": "docker compose -f infra/compose.yml up -d",
+    "services:down": "docker compose -f infra/compose.yml down",
+    "services:wait:database": "npx tsx infra/scripts/wait-for-database.ts",
     "migrations:create": "node-pg-migrate -m infra/migrations create",
-    "migrations:up": "node-pg-migrate -m infra/migrations --envPath .env.development up"
+    "migrations:up": "node-pg-migrate -m infra/migrations --envPath .env.development up",
+    "lint:prettier:check": "prettier --check .",
+    "lint:prettier:write": "prettier --write .",
+    "lint:eslint:check": "eslint .",
+    "lint:eslint:write": "eslint --fix ."
   },
   "dependencies": {
     "csv-parse": "^7.0.1",
+    "dotenv": "^17.4.2",
+    "dotenv-expand": "^13.0.0",
     "iconv-lite": "^0.7.3",
     "next": "16.2.12",
     "react": "19.2.4",
@@ -23,10 +31,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.12",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.4",
     "node-pg-migrate": "^9.0.0",
     "pg": "^8.22.0",
+    "prettier": "^3.9.6",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
