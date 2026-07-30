@@ -1,5 +1,5 @@
-import SalesChart from "@/components/Chart";
-import ChartDataSet from "@/models/ChartDataSet";
+import SalesChart from "@/components/chart";
+import ChartDataSet from "@/models/chartDataSet";
 
 export default async function Home() {
   const dataset = new ChartDataSet();
