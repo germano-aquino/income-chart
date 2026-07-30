@@ -12,4 +12,5 @@ module.exports = {
     "^@/(.*)$": "<rootDir>/$1",
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  setupFiles: ["dotenv/config"],
 };

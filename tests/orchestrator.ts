@@ -1,3 +1,5 @@
+import database from "@/infra/database";
+import migrator from "@/models/migrator";
 import retry from "async-retry";
 
 export default class Orchestrator {
@@ -20,6 +22,16 @@ export default class Orchestrator {
         }
       }
     }
+  }
+
+  async clearDatabase() {
+    await database.query({
+      text: "DROP SCHEMA public CASCADE; CREATE SCHEMA public;",
+    });
+  }
+
+  async runPendingMigrations() {
+    await migrator.runPendingMigrations();
   }
 
   isUUIDv4Regex(uuid: string): boolean {
