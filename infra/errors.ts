@@ -1,15 +1,34 @@
-interface ErrorProps {
-  message?: string;
-  cause?: ErrorOptions;
+interface AppErrorProps {
+  message: string;
+  statusCode?: number;
+  cause: ErrorOptions;
   action?: string;
 }
 
-export class InternalServerError extends Error {
-  public action;
-  public statusCode;
+export class AppError extends Error {
+  public statusCode: number;
+  public action: string;
 
-  constructor({ message, cause }: ErrorProps) {
-    super(message || "Um erro interno não esperado aconteceu.", cause);
+  constructor({
+    message,
+    statusCode = 500,
+    cause,
+    action = "",
+  }: AppErrorProps) {
+    super(message, cause);
+    this.statusCode = statusCode;
+    this.action = action;
+
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+export class InternalServerError extends AppError {
+  constructor({ message, cause }: AppErrorProps) {
+    super({
+      message: message || "Um erro interno não esperado aconteceu.",
+      cause,
+    });
     this.name = "InternalServerError";
     this.action = "Entre em contato com o suporte.";
     this.statusCode = 500;
@@ -25,12 +44,12 @@ export class InternalServerError extends Error {
   }
 }
 
-export class MethodNotAllowedError extends Error {
-  public action;
-  public statusCode;
-
-  constructor({ message, cause }: ErrorProps) {
-    super(message || "Método não permitido para este endpoint.", cause);
+export class MethodNotAllowedError extends AppError {
+  constructor({ message, cause }: AppErrorProps) {
+    super({
+      message: message || "Método não permitido para este endpoint.",
+      cause,
+    });
     this.name = "MethodNotAllowedError";
     this.action = "Verifique se o método HTTP é válido para este endpoint.";
     this.statusCode = 405;
@@ -46,12 +65,9 @@ export class MethodNotAllowedError extends Error {
   }
 }
 
-export class ServiceError extends Error {
-  public action;
-  public statusCode;
-
-  constructor({ message, cause }: ErrorProps) {
-    super(message || "O serviço indisponível no momento.", cause);
+export class ServiceError extends AppError {
+  constructor(message: string, cause: ErrorOptions) {
+    super({ message: message || "O serviço indisponível no momento.", cause });
     this.name = "ServiceError";
     this.action = "Verifique se o serviço está disponível.";
     this.statusCode = 503;
@@ -67,12 +83,9 @@ export class ServiceError extends Error {
   }
 }
 
-export class ValidationError extends Error {
-  public action;
-  public statusCode;
-
-  constructor({ message, cause, action }: ErrorProps) {
-    super(message || "Um erro de validação ocorreu", cause);
+export class ValidationError extends AppError {
+  constructor({ message, cause, action }: AppErrorProps) {
+    super({ message: message || "Um erro de validação ocorreu", cause });
     this.name = "ValidationError";
     this.action = action || "Ajuste os dados utilizados e tente novamente.";
     this.statusCode = 400;
@@ -88,15 +101,12 @@ export class ValidationError extends Error {
   }
 }
 
-export class NotFoundError extends Error {
-  public action;
-  public statusCode;
-
-  constructor({ message, cause, action }: ErrorProps) {
-    super(
-      message || "Não foi possível encontrar este recurso no sistema",
+export class NotFoundError extends AppError {
+  constructor({ message, cause, action }: AppErrorProps) {
+    super({
+      message: message || "Não foi possível encontrar este recurso no sistema",
       cause,
-    );
+    });
     this.name = "NotFoundError";
     this.action =
       action || "Ajuste os parâmetros utilizados na cosulta e tente novamente.";
@@ -113,15 +123,12 @@ export class NotFoundError extends Error {
   }
 }
 
-export class UnauthorizedError extends Error {
-  public action;
-  public statusCode;
-
-  constructor({ message, cause, action }: ErrorProps) {
-    super(
-      message || "Não foi possível encontrar este recurso no sistema",
+export class UnauthorizedError extends AppError {
+  constructor({ message, cause, action }: AppErrorProps) {
+    super({
+      message: message || "Não foi possível encontrar este recurso no sistema",
       cause,
-    );
+    });
     this.name = "UnauthorizedError";
     this.action =
       action || "Ajuste os parâmetros utilizados na cosulta e tente novamente.";
@@ -138,12 +145,9 @@ export class UnauthorizedError extends Error {
   }
 }
 
-export class ForbiddenError extends Error {
-  public action;
-  public statusCode;
-
-  constructor({ message, cause, action }: ErrorProps) {
-    super(message || "Acesso negado.", cause);
+export class ForbiddenError extends AppError {
+  constructor({ message, cause, action }: AppErrorProps) {
+    super({ message: message || "Acesso negado.", cause });
     this.name = "ForbiddenError";
     this.action =
       action || "Verifique as features necessárias e tente novamente.";
