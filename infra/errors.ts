@@ -1,7 +1,7 @@
 interface AppErrorProps {
   message: string;
   statusCode?: number;
-  cause: ErrorOptions;
+  cause?: ErrorOptions;
   action?: string;
 }
 
@@ -66,7 +66,7 @@ export class MethodNotAllowedError extends AppError {
 }
 
 export class ServiceError extends AppError {
-  constructor(message: string, cause: ErrorOptions) {
+  constructor({ message, cause }: AppErrorProps) {
     super({ message: message || "O serviço indisponível no momento.", cause });
     this.name = "ServiceError";
     this.action = "Verifique se o serviço está disponível.";

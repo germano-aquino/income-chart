@@ -2,7 +2,7 @@ import database from "@/infra/database";
 import { withErrorHandler } from "@/infra/with-error-handler";
 import { NextResponse } from "next/server";
 
-export const GET = withErrorHandler(async (request: Request) => {
+export const GET = withErrorHandler(async () => {
   const updatedAt = new Date().toISOString();
 
   const versionResult = await database.query({ text: "SHOW server_version;" });

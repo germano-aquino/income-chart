@@ -1,3 +1,11 @@
+import Orchestrator from "@/tests/orchestrator";
+
+const orchestrator = new Orchestrator();
+
+beforeAll(async () => {
+  await orchestrator.waitForAllServices();
+});
+
 describe("GET api/v1/status", () => {
   test("Retriving current system status", async () => {
     const response = await fetch("http://localhost:3000/api/v1/status");

@@ -8,4 +8,8 @@ module.exports = {
   transform: {
     ...tsJestTransformCfg,
   },
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/$1",
+  },
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
 };
