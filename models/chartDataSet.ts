@@ -1,106 +1,81 @@
-import fs from "fs";
-import { parse } from "csv-parse";
-import * as iconv from "iconv-lite";
+import database from "@/infra/database";
 
-interface ChartDataItem {
-  date: Date;
-  partner: string;
-  service: string;
-  category: string;
-  income: number;
-}
-
-interface DatabaseItem {
-  "Atendimento/Venda": string;
-  "Pagamento / Estorno": Date;
-  "Data de Liberaçao do Rateio": Date;
-  Profissional: string;
-  Assistente: string;
-  "Serviço/Produto/Pacote": string;
-  Categoria: string;
-  "Consumo de Pacote": string;
-  Cliente: string;
-  CPF: string;
-  Valor: number;
-  "Desconto Cliente": number;
-  "Desconto administrativo": number;
-  "Pago em": string;
-  "Motivo de Desconto": string;
-  "Custo operacional": number;
-  "Valor Base Rateio": number;
-  "% Rateio": number;
-  "Desconto Operadora": number;
-  "Valor Rateio": number;
-  "Quem registrou a transação": string;
-  "Rateio para": string;
-  "Numero da NFC-e": string;
-  "Data de Emissão da NFC-e": string;
-  "Status da NFC-e": string;
+interface ChartFilter {
+  store: string;
+  partner?: string;
+  service?: string;
+  category?: string;
+  start_date?: string;
+  end_date?: string;
+  time_granularity: "month" | "day";
 }
 
 export default class ChartDataSet {
-  private static dataRetrieved = false;
-  private results = [] as ChartDataItem[];
-  private services: Set<string> = new Set();
-  private categories: Set<string> = new Set();
-  private partners: Set<string> = new Set();
+  async get(inputValues: ChartFilter) {
+    const chartDataSetInfo = await runSelectQuery(inputValues);
+    return chartDataSetInfo;
 
-  constructor() {}
+    async function runSelectQuery(inputValues: ChartFilter) {
+      const store = inputValues.store;
+      const partner = inputValues.partner;
+      const service = inputValues.service;
+      const category = inputValues.category;
+      const startDate = inputValues.start_date;
+      const endDate = inputValues.end_date;
+      const timeGranularity =
+        inputValues.time_granularity === "month" ? "YYYY-MM" : "YYYY-MM-DD";
 
-  public async getDataFromCsv() {
-    if (ChartDataSet.dataRetrieved) return;
+      const values = [timeGranularity];
 
-    await new Promise(async (resolve, rejects) => {
-      const records: DatabaseItem[] = [];
+      let query = `
+          SELECT 
+            TO_CHAR(date, $1) AS date_label,
+            ROUND(SUM(income_in_cents) / 100.0, 2) AS receita
+          FROM sales
+          WHERE
+            1 = 1 `;
 
-      const parser = parse({
-        columns: true,
-        delimiter: ",",
-        relax_column_count: true,
-        trim: true,
-        skip_empty_lines: true,
+      if (startDate) {
+        values.push(startDate);
+        query += `AND ( date >= $${values.length} )`;
+      }
+
+      if (endDate) {
+        values.push(endDate);
+        query += `AND ( date >= $${values.length} )`;
+      }
+
+      if (store) {
+        values.push(store);
+        query += `AND ( store = $${values.length} )`;
+      }
+
+      if (partner) {
+        values.push(partner);
+        query += `AND ( partner = $${values.length} )`;
+      }
+
+      if (service) {
+        values.push(service);
+        query += `AND ( service = $${values.length} )`;
+      }
+
+      if (category) {
+        values.push(category);
+        query += `AND ( category = $${values.length} )`;
+      }
+
+      query += `
+        GROUP BY date_label
+        ORDER BY date_label ASC;
+      `;
+
+      const results = await database.query({
+        text: query,
+        values,
       });
 
-      const decoderStream = iconv.decodeStream("win1252");
-
-      fs.createReadStream("./infra/database/relatorio_14_jan_jun.csv")
-        .pipe(decoderStream)
-        .pipe(parser)
-        .on("data", (row: DatabaseItem) => {
-          this.results.push({
-            date: new Date(row["Atendimento/Venda"]),
-            partner: row["Profissional"],
-            service: row["Serviço/Produto/Pacote"],
-            category: row["Categoria"],
-            income: row["Valor Rateio"],
-          });
-          this.partners.add(row["Profissional"]);
-          this.services.add(row["Categoria"]);
-          this.categories.add(row["Serviço/Produto/Pacote"]);
-        })
-        .on("error", (err: Error) => rejects(err))
-        .on("end", () => {
-          resolve(records);
-        });
-    });
-
-    const output = JSON.stringify(this.results, null, 2);
-    const buffer = iconv.encode(output, "windows-1252");
-
-    fs.writeFileSync("./infra/database/output.txt", buffer);
-
-    ChartDataSet.dataRetrieved = true;
-  }
-
-  public getServices(): string[] {
-    return Array.from(this.services);
-  }
-
-  public getCategories(): string[] {
-    return Array.from(this.categories);
-  }
-
-  public getPartners(): string[] {
-    return Array.from(this.partners);
+      return results.rows;
+    }
   }
 }

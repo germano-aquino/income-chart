@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -12,34 +12,28 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// 1. Define the interface for your data items
 interface ChartDataItem {
   month: string;
   sales: number;
-  profit: number;
 }
 
-// 2. Mock data adhering to the interface
-const data: ChartDataItem[] = [
-  { month: "Jan", sales: 4000, profit: 2400 },
-  { month: "Feb", sales: 3000, profit: 1398 },
-  { month: "Mar", sales: 2000, profit: 9800 },
-  { month: "Apr", sales: 2780, profit: 3908 },
-  { month: "May", sales: 1890, profit: 4800 },
-  { month: "Jun", sales: 2390, profit: 3800 },
-];
+export default function SalesChart() {
+  const [data, setData] = useState<ChartDataItem[]>([]);
 
-interface SalesChartProps {
-  categories: string[];
-  partners: string[];
-  services: string[];
-}
+  useEffect(() => {
+    fetch("/api/v1/chart-sales", {
+      method: "POST",
+      body: JSON.stringify({
+        store: "14",
+        time_granularity: "month",
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+      });
+  }, []);
 
-export default function SalesChart({
-  categories,
-  partners,
-  services,
-}: SalesChartProps) {
   return (
     // ResponsiveContainer makes the chart scale to its parent's width/height
     <div className="block w-full">
@@ -53,7 +47,7 @@ export default function SalesChart({
             <CartesianGrid strokeDasharray="3 3" />
 
             {/* Axes configuration mapped to data keys */}
-            <XAxis dataKey="month" />
+            <XAxis dataKey="date_label" />
             <YAxis />
 
             {/* Interactive hover tooltips and legends */}
@@ -63,11 +57,10 @@ export default function SalesChart({
             {/* Line paths tied to specific numeric keys in your data interface */}
             <Line
               type="monotone"
-              dataKey="sales"
+              dataKey="receita"
               stroke="#8884d8"
               activeDot={{ r: 8 }}
             />
-            <Line type="monotone" dataKey="profit" stroke="#82ca9d" />
           </LineChart>
         </ResponsiveContainer>
       </div>
