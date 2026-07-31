@@ -3,11 +3,12 @@ import { parse } from "csv-parse";
 import * as iconv from "iconv-lite";
 
 interface ChartDataItem {
+  store: string;
   date: Date;
   partner: string;
   service: string;
   category: string;
-  income: number;
+  income_in_cents: number;
 }
 
 interface DatabaseItem {
@@ -30,7 +31,7 @@ interface DatabaseItem {
   "Valor Base Rateio": number;
   "% Rateio": number;
   "Desconto Operadora": number;
-  "Valor Rateio": number;
+  "Valor Rateio": string;
   "Quem registrou a transação": string;
   "Rateio para": string;
   "Numero da NFC-e": string;
@@ -62,11 +63,12 @@ async function getDataFromCsv() {
       .pipe(parser)
       .on("data", (row: DatabaseItem) => {
         results.push({
-          date: new Date(row["Atendimento/Venda"]),
+          store: "14",
+          date: parseDateString(row["Atendimento/Venda"]),
           partner: row["Profissional"],
           service: row["Serviço/Produto/Pacote"],
           category: row["Categoria"],
-          income: row["Valor Rateio"],
+          income_in_cents: parseIncomeInCents(row["Valor Rateio"]),
         });
         partners.add(row["Profissional"]);
         services.add(row["Categoria"]);
@@ -77,11 +79,39 @@ async function getDataFromCsv() {
         resolve(records);
       });
   });
+
+  function parseDateString(dateStr: string) {
+    const [dayStr, monthStr, yearStr] = dateStr.split("/");
+
+    const day = parseInt(dayStr, 10);
+    const year = parseInt(yearStr, 10);
+
+    const monthIndex = parseInt(monthStr, 10) - 1;
+    return new Date(year, monthIndex, day);
+  }
+
+  function parseIncomeInCents(income: string) {
+    const incomeInCentsString = income.replace(",", "");
+    return Number(incomeInCentsString);
+  }
 }
 
 async function main() {
   await getDataFromCsv();
-  console.log(results);
+  for (const income of results) {
+    console.log(income);
+    if (!isNaN(income.date.getTime())) {
+      const response = await fetch("http://localhost:3000/api/v1/sales", {
+        method: "POST",
+        body: JSON.stringify(income),
+      });
+
+      if (response.status !== 201) {
+        const error = await response.json();
+        console.log(error);
+      }
+    }
+  }
 }
 
 (async () => {

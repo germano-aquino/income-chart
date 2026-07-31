@@ -11,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import ChartFilters from "./chartFilters";
 
 interface ChartDataItem {
   month: string;
@@ -38,6 +39,7 @@ export default function SalesChart() {
     // ResponsiveContainer makes the chart scale to its parent's width/height
     <div className="block w-full">
       <div className="w-full h-100">
+        <ChartFilters />
         <ResponsiveContainer>
           <LineChart
             data={data}
