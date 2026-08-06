@@ -1,9 +1,10 @@
 import database from "@/infra/database";
 import { ValidationError } from "@/infra/errors";
+import validator from "@/utils/validator";
 
 export interface SaleCreateInputValue {
   store: string;
-  date: Date;
+  date: string;
   category: string;
   service: string;
   income_in_cents: number;
@@ -31,7 +32,7 @@ export class Sale {
         validateStringInput(inputValues, key);
       });
 
-      if (!("date" in inputValues)) {
+      if (!("date" in inputValues) || !validator.date(inputValues.date)) {
         throw new ValidationError({
           action:
             "Verifique se as informações de venda estão corretas e tente novamente.",

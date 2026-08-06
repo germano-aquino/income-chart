@@ -58,6 +58,32 @@ describe("POST api/v1/sales", () => {
     });
   });
 
+  test("With wrong date field", async () => {
+    const response = await fetch("http://localhost:3000/api/v1/sales", {
+      method: "POST",
+      body: JSON.stringify({
+        store: "14",
+        service: "Buço",
+        category: "Depilação",
+        date: "wrongDate",
+        income_in_cents: 5500,
+        partner: "Sara",
+      }),
+    });
+
+    expect(response.status).toBe(400);
+
+    const responseBody = await response.json();
+
+    expect(responseBody).toEqual({
+      name: "ValidationError",
+      status_code: 400,
+      action:
+        "Verifique se as informações de venda estão corretas e tente novamente.",
+      message: "O campo date está inválido.",
+    });
+  });
+
   test("With missing service", async () => {
     const response = await fetch("http://localhost:3000/api/v1/sales", {
       method: "POST",
