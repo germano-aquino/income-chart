@@ -1,6 +1,7 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import * as iconv from "iconv-lite";
+import converter from "@/utils/converter";
 
 interface ChartDataItem {
   store: string;
@@ -64,11 +65,11 @@ async function getDataFromCsv() {
       .on("data", (row: DatabaseItem) => {
         results.push({
           store: "14",
-          date: parseDateString(row["Atendimento/Venda"]),
+          date: converter.stringToDate(row["Atendimento/Venda"]),
           partner: row["Profissional"],
           service: row["Serviço/Produto/Pacote"],
           category: row["Categoria"],
-          income_in_cents: parseIncomeInCents(row["Valor Rateio"]),
+          income_in_cents: converter.currencyToInt(row["Valor Rateio"]),
         });
         partners.add(row["Profissional"]);
         services.add(row["Categoria"]);
@@ -79,21 +80,6 @@ async function getDataFromCsv() {
         resolve(records);
       });
   });
-
-  function parseDateString(dateStr: string) {
-    const [dayStr, monthStr, yearStr] = dateStr.split("/");
-
-    const day = parseInt(dayStr, 10);
-    const year = parseInt(yearStr, 10);
-
-    const monthIndex = parseInt(monthStr, 10) - 1;
-    return new Date(year, monthIndex, day);
-  }
-
-  function parseIncomeInCents(income: string) {
-    const incomeInCentsString = income.replace(",", "");
-    return Number(incomeInCentsString);
-  }
 }
 
 async function main() {

@@ -15,8 +15,16 @@ export default function SelectFilter({
   placeholder,
   unique = false,
 }: SelectFilterProps) {
+  function getDefaultValue() {
+    return unique ? "all" : "";
+  }
+
   return (
-    <Select.Root value={value} onValueChange={setValue} defaultValue="all">
+    <Select.Root
+      value={value}
+      onValueChange={setValue}
+      defaultValue={getDefaultValue()}
+    >
       <Select.Trigger variant="soft" placeholder={placeholder} />
       <Select.Content>
         {!unique && <Select.Item value="all">Todos</Select.Item>}

@@ -1,19 +1,48 @@
 import database from "@/infra/database";
+import { ValidationError } from "@/infra/errors";
 
 interface ChartFilter {
-  store: string;
-  partner?: string;
-  service?: string;
-  category?: string;
-  start_date?: string;
-  end_date?: string;
+  store: string | null;
+  partner: string | null;
+  service: string | null;
+  category: string | null;
+  start_date: string | null;
+  end_date: string | null;
   time_granularity: "month" | "day";
 }
 
 export default class ChartDataSet {
   async get(inputValues: ChartFilter) {
+    const validInputs = getValidInputs(inputValues);
+
     const chartDataSetInfo = await runSelectQuery(inputValues);
     return chartDataSetInfo;
+
+    function getValidInputs(inputValues: ChartFilter) {
+      const validInputs = {} as ChartFilter;
+
+      validInputs["store"] = getValidStore(inputValues);
+      console.log(validInputs);
+
+      if (inputValues.partner && inputValues.partner === "undefined")
+        validInputs["partner"] = null;
+      return validInputs;
+    }
+
+    function getValidStore(inputValues: ChartFilter) {
+      const storeNames = ["14", "umarizal", "duque", "batista"];
+      const emptyValues = ["undefined", "null"];
+      if (!inputValues.store || emptyValues.includes(inputValues.store))
+        return null;
+
+      if (storeNames.includes(inputValues.store)) return inputValues.store;
+
+      throw new ValidationError({
+        message: "O campo store está inválido.",
+        action:
+          "Verifique se a seleção de filtros está correta e tente novamente.",
+      });
+    }
 
     async function runSelectQuery(inputValues: ChartFilter) {
       const store = inputValues.store;
@@ -42,7 +71,7 @@ export default class ChartDataSet {
 
       if (endDate) {
         values.push(endDate);
-        query += `AND ( date >= $${values.length} )`;
+        query += `AND ( date <= $${values.length} )`;
       }
 
       if (store) {
@@ -52,17 +81,17 @@ export default class ChartDataSet {
 
       if (partner) {
         values.push(partner);
-        query += `AND ( partner = $${values.length} )`;
+        query += `AND ( LOWER(partner) = LOWER($${values.length}) )`;
       }
 
       if (service) {
         values.push(service);
-        query += `AND ( service = $${values.length} )`;
+        query += `AND ( LOWER(service) = LOWER($${values.length}) )`;
       }
 
       if (category) {
         values.push(category);
-        query += `AND ( category = $${values.length} )`;
+        query += `AND ( LOWER(category) = LOWER($${values.length}) )`;
       }
 
       query += `
@@ -74,6 +103,9 @@ export default class ChartDataSet {
         text: query,
         values,
       });
+
+      console.log(query);
+      console.log(values);
 
       return results.rows;
     }

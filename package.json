@@ -11,7 +11,7 @@
     "start": "next start",
     "services:up": "docker compose -f infra/compose.yml up -d",
     "services:down": "docker compose -f infra/compose.yml down",
-    "services:wait:database": "npx tsx infra/scripts/wait-for-database.ts",
+    "services:wait:database": "npx -y tsx infra/scripts/wait-for-database.ts",
     "migrations:create": "node-pg-migrate -m infra/migrations create",
     "migrations:up": "node-pg-migrate -m infra/migrations --envPath .env.development up",
     "lint:prettier:check": "prettier --check .",

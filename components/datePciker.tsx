@@ -17,9 +17,12 @@ import {
 import { ptBR as ptbr } from "react-day-picker/locale";
 import { ptBR } from "date-fns/locale";
 
-export default function DatePicker() {
-  const [date, setDate] = React.useState<Date>();
+interface DatePickerProps {
+  date: Date | undefined;
+  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+}
 
+export default function DatePicker({ date, setDate }: DatePickerProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -42,6 +45,7 @@ export default function DatePicker() {
           selected={date}
           onSelect={setDate}
           locale={ptbr}
+          required={false}
         />
       </PopoverContent>
     </Popover>

@@ -1,25 +1,25 @@
 import database from "@/infra/database";
 import { ValidationError } from "@/infra/errors";
 
-interface CreateInputValue {
+export interface SaleCreateInputValue {
   store: string;
-  date: string;
+  date: Date;
   category: string;
   service: string;
   income_in_cents: number;
   partner: string;
 }
 
-type CreateInputValueKeys = keyof CreateInputValue;
+type CreateInputValueKeys = keyof SaleCreateInputValue;
 
 export class Sale {
-  public async create(userInputValues: CreateInputValue) {
+  public async create(userInputValues: SaleCreateInputValue) {
     validateInputs(userInputValues);
 
     const createdSale = await runInsertQuery(userInputValues);
     return createdSale;
 
-    function validateInputs(inputValues: CreateInputValue) {
+    function validateInputs(inputValues: SaleCreateInputValue) {
       const stringKeys = [
         "store",
         "category",
@@ -31,7 +31,7 @@ export class Sale {
         validateStringInput(inputValues, key);
       });
 
-      if (!("date" in inputValues) || !isValidDate(inputValues.date)) {
+      if (!("date" in inputValues)) {
         throw new ValidationError({
           action:
             "Verifique se as informações de venda estão corretas e tente novamente.",
@@ -52,7 +52,7 @@ export class Sale {
     }
 
     function validateStringInput(
-      inputValues: CreateInputValue,
+      inputValues: SaleCreateInputValue,
       key: CreateInputValueKeys,
     ) {
       if (!(key in inputValues) || !inputValues[key]) {
@@ -64,16 +64,11 @@ export class Sale {
       }
     }
 
-    function isValidDate(date: string) {
-      const dateObj = new Date(date);
-      return !Number.isNaN(dateObj.getTime());
-    }
-
     function isValidPrice(value: number) {
       return value >= 0 && Number.isInteger(value);
     }
 
-    async function runInsertQuery(userInputValues: CreateInputValue) {
+    async function runInsertQuery(userInputValues: SaleCreateInputValue) {
       const store = userInputValues.store;
       const service = userInputValues.service;
       const partner = userInputValues.partner;
