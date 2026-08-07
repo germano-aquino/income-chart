@@ -90,9 +90,6 @@ export default function SalesChart() {
     if (filter.startDate) body["start_date"] = filter.startDate;
     if (filter.endDate) body["end_date"] = filter.endDate;
 
-    console.log(filter);
-    console.log("body");
-    console.log(body);
     return JSON.stringify(body);
   }
 

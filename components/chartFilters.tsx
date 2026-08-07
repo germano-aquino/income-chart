@@ -47,15 +47,6 @@ export default function ChartFilters({
   const groupBys = ["Mês", "Dia"];
 
   function getChartFilter() {
-    console.log("filter selection");
-    console.log(store);
-    console.log(partner);
-    console.log(service);
-    console.log(category);
-    console.log(startDate);
-    console.log(endDate);
-    console.log(!startDate);
-
     return {
       store: store ? store : null,
       partner: partner ? partner : null,
